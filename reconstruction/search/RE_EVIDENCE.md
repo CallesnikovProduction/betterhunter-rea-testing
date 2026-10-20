@@ -1,0 +1,13 @@
+# Search reverse-engineering evidence
+
+Static inspection of `raw-source/base.apk` (`ru.hh.android` 26.38, SHA-256 `0ef900e1066cf63dd86e9924479bfe9bcc0a2669215984c4ccf97141c7953544`) via REA/JADX Headless 0.7.1. APK was not executed.
+
+| Component / evidence ID | Observed behavior | Unknown / BetterHunter boundary |
+|---|---|---|
+| `VacancySearchStateConverter.a`: `ev_eae0cf84dc7579717d8e4ec52e09e11defdd2697a3f02c6e33f163a54b27e155`; `.b`: `ev_165c7b870425dc64f288af61a71fcf5859cb1cd7e09aa9fa445005e0ff9339bd`; `.c`: `ev_eacf0e8ca9bfb332694f3365a91fa885b6a5ba12c025f16c3232882343bf2a27`; `.d`: `ev_466a8268a548022f6c5fedf0f0a7ba55b5122495d8ab1cf07d45efba6527cdff` | `a/b/c` destructively remove queried keys from a local ordered map; `d` parses URI to a local map and converts recognized query values. | Runtime caller coverage and some private filtering sets remain unknown. This module retains the existing parser's documented defensive-copy behavior; it does not claim internal-state mutation parity. |
+| `QuickFilterConverter`: `ev_6efc0126fc6f1e26140470bdcc551ec9c5d05bb3475a03a0ce8fa0c009c1c74b` | Constructor receives specialized converter dependencies for quick-open, area, district, metro, schedule, experience, employment, salary, hours, licenses, company, inclusiveness, hiring status, and other filters. This is composition evidence only. | Individual conversion semantics were not inferred from constructor wiring. |
+| `QuickFiltersReducer`: `ev_e3e308ebeb508871542022250bcb091598664330753133ae30820a34e2d80541` | Class signature shows a reducer method `a(guc,buc):guc` holding a `QuickFilterConverter`. | Obfuscated argument and return aliases leave reducer behavior unknown; no body claim made here. |
+| `SearchVacancyApi`: `ev_c274d4ed12d477b693d07f0b60a6933972a354141fd39a45b997eefeeff84f86` | Public method signatures include Rx `Single` operations accepting internal search model types. | No endpoint, network behavior, ranking, or server contract was inspected or reconstructed. |
+| `VacancySearchAdsConverter`: `ev_77f7f352cc7cc4732395cd1d8f911dee58dd9829ae33723067153a1d96e85101` | Constructor-only signature was available. | Ad mapping behavior unknown and excluded from local search. |
+
+BetterHunter's mock ranking, currency comparison, filters, sort IDs, paging, and UI states are independent local design choices. In particular, salary without a requested currency compares the displayed numeric values as-is; no exchange conversion is performed. Server-side matching, ranking, result totals, and facets cannot be recovered from these client signatures and are not simulated as HH behavior.
